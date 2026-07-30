@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PureHealth AI | PureView</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#1D5F8A; --brand-dark:#0E3A5C; --brand-light:#E6F1FB;
+    --accent:#0F6E56; --accent-light:#E1F5EE; --gold:#C9960C; --gold-light:#FEF6E0;
+    --danger:#A32D2D; --danger-light:#FCEBEB;
+    --surface:#FFFFFF; --surface2:#F7F8FA; --bg:#EEF2F7;
+    --border:#D3D1C7; --text:#1A1A18; --text2:#5A5956; --text3:#9A9894;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
+
+  .topbar{background:var(--brand-dark);color:#fff;display:flex;align-items:center;padding:0 20px;height:54px;gap:26px;}
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-family:'DM Serif Display',serif;font-size:17px;white-space:nowrap;}
+  .topbar .brand .mark{width:26px;height:26px;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;}
+  .topbar .tabs{display:flex;gap:2px;flex:1;}
+  .topbar .tabs a{color:rgba(255,255,255,0.68);text-decoration:none;font-size:13px;font-weight:600;padding:18px 14px;border-bottom:3px solid transparent;cursor:pointer;}
+  .topbar .tabs a.active{color:#fff;border-bottom-color:var(--accent);}
+  .topbar .tabs a:hover{color:#fff;}
+  .topbar .filters{display:flex;gap:10px;align-items:center;}
+  .topbar .filters input{background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:20px;padding:7px 14px;color:#fff;font-size:12px;width:135px;font-family:'DM Sans',sans-serif;}
+  .topbar .filters input::placeholder{color:rgba(255,255,255,0.55);}
+
+  .layout{display:grid;grid-template-columns:290px 1fr 300px;gap:12px;padding:14px;align-items:start;}
+  .col-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin:0 2px 8px;}
+
+  /* PATIENT LIST */
+  .patient-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;cursor:pointer;transition:box-shadow .12s, border-color .12s;}
+  .patient-card:hover{box-shadow:0 2px 10px rgba(29,95,138,0.1);}
+  .patient-card.selected{border-color:var(--accent);border-width:1.5px;}
+  .patient-head{padding:12px 14px 10px;display:flex;gap:10px;align-items:flex-start;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--brand-light);color:var(--brand);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .avatar.flagged{background:var(--danger-light);color:var(--danger);}
+  .who{flex:1;min-width:0;}
+  .who .name{color:var(--brand-dark);font-weight:700;font-size:13.5px;}
+  .who .ins{font-size:10.5px;color:var(--text3);margin-top:2px;}
+  .meta{text-align:right;font-size:10.5px;color:var(--text2);white-space:nowrap;}
+  .review-pill{display:inline-block;margin-top:4px;font-size:9.5px;font-weight:700;color:var(--danger);background:var(--danger-light);padding:2px 7px;border-radius:10px;}
+  .drug-table{width:100%;border-collapse:collapse;font-size:10.5px;}
+  .drug-table th{background:var(--surface2);color:var(--text3);font-weight:700;text-align:left;padding:5px 10px;border-top:1px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.04em;}
+  .drug-table td{padding:5px 10px;border-top:1px solid #eee;color:var(--text);}
+  .status-active{color:var(--accent);font-weight:600;}
+  .status-dc{color:var(--text3);}
+
+  /* DETAIL PANEL */
+  .detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0;}
+  .detail-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+  .detail-toolbar .headline{font-family:'DM Serif Display',serif;font-size:16px;color:var(--brand-dark);}
+  .detail-toolbar .sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  .icon-row{display:flex;gap:8px;}
+  .icon-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;color:var(--text2);background:var(--surface);}
+  .icon-btn:hover{background:var(--brand-light);color:var(--brand);border-color:var(--brand);}
+  .detail-body{padding:6px 18px 20px;}
+  .section{border-bottom:1px solid var(--border);}
+  .section:last-child{border-bottom:none;}
+  .section-head{display:flex;align-items:center;gap:10px;padding:12px 0;cursor:pointer;}
+  .section-head .bar{width:4px;height:16px;border-radius:2px;background:var(--accent);}
+  .section-head .label{font-weight:700;color:var(--text);font-size:13px;flex:1;}
+  .section-head .caption{font-size:10.5px;color:var(--text3);font-weight:400;}
+  .section-head .chev{font-size:10px;color:var(--text3);transition:transform .15s;}
+  .section-head.collapsed .chev{transform:rotate(-90deg);}
+  .section-body{padding:0 0 16px 14px;}
+  .section-body.collapsed{display:none;}
+  .kv-row{display:flex;padding:4px 0;font-size:12.5px;}
+  .kv-row .k{width:185px;flex-shrink:0;color:var(--text3);}
+  .kv-row .v{color:var(--text);font-weight:500;}
+  .kv-row .v.linked{color:var(--brand);cursor:pointer;}
+  .kv-row .v.linked:hover{text-decoration:underline;}
+  .diag-item{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #f2f2ef;font-size:12.5px;}
+  .diag-item:last-child{border-bottom:none;}
+  .diag-item .code{font-family:ui-monospace,Consolas,monospace;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .diag-item .code.none{background:var(--surface2);color:var(--text3);font-family:'DM Sans',sans-serif;font-weight:400;font-style:italic;}
+  .diag-note{font-size:11px;color:var(--gold);background:var(--gold-light);padding:8px 10px;border-radius:7px;margin-top:8px;}
+  .flag-note{font-size:11px;color:var(--danger);background:var(--danger-light);padding:6px 9px;border-radius:6px;margin-top:4px;}
+
+  /* SOURCE PANEL */
+  .source-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .source-toolbar{display:flex;gap:8px;margin-bottom:12px;justify-content:flex-end;}
+  .search-wrap{display:flex;gap:6px;margin-bottom:14px;}
+  .search-wrap input{flex:1;border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:12px;font-family:'DM Sans',sans-serif;}
+  .search-wrap input:focus{outline:none;border-color:var(--brand);}
+  .search-wrap button{border:none;background:var(--brand);color:#fff;border-radius:50%;width:34px;height:34px;font-size:13px;cursor:pointer;flex-shrink:0;}
+  .search-wrap button:hover{background:var(--brand-dark);}
+  .page-card{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+  .page-card-head{background:var(--brand-light);padding:7px 12px;font-size:10.5px;font-weight:700;color:var(--brand-dark);display:flex;justify-content:space-between;align-items:center;}
+  .page-card-head .tag{background:var(--brand);color:#fff;font-size:9.5px;padding:1px 8px;border-radius:10px;font-weight:600;}
+  .page-card-body{padding:9px 12px 4px;font-size:10.5px;line-height:1.55;color:var(--text2);white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;max-height:150px;overflow:hidden;position:relative;}
+  .page-card-body.expanded{max-height:none;}
+  .page-card-body mark{background:var(--gold-light);color:var(--text);padding:0 2px;border-radius:2px;}
+  .page-card-fade{height:28px;margin-top:-28px;background:linear-gradient(rgba(255,255,255,0),var(--surface));position:relative;pointer-events:none;}
+  .page-card-fade.hide{display:none;}
+  .page-card-toggle{display:block;width:100%;text-align:center;background:var(--surface2);border:none;border-top:1px solid var(--border);color:var(--brand);font-size:10.5px;font-weight:600;padding:6px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+  .page-card-toggle:hover{background:var(--brand-light);}
+  .no-match{display:none;text-align:center;color:var(--text3);padding:20px 0;}
+
+  @media (max-width:1100px){ .layout{grid-template-columns:260px 1fr;} .source-panel{grid-column:1/3;} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="mark">PH</span> PureHealth AI</div>
+  <div class="tabs">
+    <a>Home</a>
+    <a>Rapid Intake</a>
+    <a class="active">PureView</a>
+    <a>Activity Report</a>
+  </div>
+  <div class="filters">
+    <input placeholder="Patient name">
+    <input placeholder="Facility">
+  </div>
+</div>
+
+<div class="layout">
+
+  <div>
+    <p class="col-title">Admit queue</p>
+    <div id="patientList"></div>
+  </div>
+
+  <div class="detail-panel">
+    <div class="detail-toolbar">
+      <div>
+        <div class="headline" id="detailHeadline">&nbsp;</div>
+        <div class="sub" id="detailSub"></div>
+      </div>
+      <div class="icon-row">
+        <span class="icon-btn" title="Edit">&#9998;</span>
+        <span class="icon-btn" title="Flag for review">&#9873;</span>
+        <span class="icon-btn" title="Print">&#128424;</span>
+        <span class="icon-btn" title="Approve">&#10003;</span>
+        <span class="icon-btn" title="Export">&#8681;</span>
+      </div>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+
+  <div class="source-panel">
+    <p class="col-title">Source pages</p>
+    <div class="source-toolbar">
+      <span class="icon-btn" title="Flag">&#9873;</span>
+      <span class="icon-btn" title="Print">&#128424;</span>
+      <span class="icon-btn" title="Copy link">&#128279;</span>
+    </div>
+    <div class="search-wrap">
+      <input id="kwSearch" placeholder="Search extracted pages" oninput="filterPages()">
+      <button onclick="filterPages()">&#128269;</button>
+    </div>
+    <div id="pageCards"></div>
+    <div class="no-match" id="noMatch">No matching pages</div>
+  </div>
+
+</div>
+
+<script>
+const PATIENTS = {
+
+  ford: {
+    name: "Ford, Bevely Glass", initials: "BF", ins: "Medicare Part A &amp; B / Aetna Plan G",
+    facility: "PH Dallas", age: 81, flagged: true, reviewNote: "Antibiotic allergy profile + active wounds",
+    meds: [
+      ["Furosemide (Lasix) IV","q12h, slow IV push","active","03/17/26"],
+      ["Apixaban (Eliquis)","Stroke ppx, afib","active","03/17/26"],
+      ["Meropenem IV","Cellulitis, started ED","active","03/17/26"],
+      ["Sliding scale insulin","Patient declined","dc","03/16/26"]
+    ],
+    runLabel: "Admit run 03/18/2026 09:05 &middot; 25-page Epic referral packet",
+    demographic: [
+      ["Last name","Ford",1],["First name","Bevely Glass",1],["Gender identity","Female",0],
+      ["Date of birth","01/03/1945 (81 yrs)",1],
+      ["Home address","12400 Preston Rd, Dallas, TX 75230",0],
+      ["Home phone","214-982-1441",0],["Mobile phone","469-879-7024",0],
+      ["Emergency contact","Jason Ford (Son / MPOA), 469-879-7024",0],
+      ["Referral source","PureHealth Transitional Care at Texas Health Pres",1]
+    ],
+    insurance: [
+      ["Primary insurance","Medicare Part A &amp; B",1],["Subscriber ID","3HY6CF6FM86",0],
+      ["Secondary insurance","Aetna Health and Life Ins Co, Plan G",1],
+      ["Insurance address","PO Box 14770, Lexington KY 40512-4770",0],
+      ["Authorization","Incomplete &mdash; no auth number on file",0],
+      ["Other details","Hospital account #20101930573",0]
+    ],
+    clinical: [
+      ["Attending provider","Hussein, Mohamed Ginawi, MD",1],
+      ["Admitting provider","Hussein, Mohamed Ginawi, MD",1],
+      ["Treatment team","Quratul Ain, Farhana, MD; Bates, Andrew Terrell (CTM/SW); Pompeo, MD (Wound)",0],
+      ["Admission type","Emergency",0],
+      ["Hospital admission date","03/13/2026 11:24",1],
+      ["Hospital expected discharge","~03/19/2026 (est. 1 more day, 03/18 note)",1],
+      ["Hospital service","Medical &mdash; THD Med/Surg M4E",0],
+      ["Hospital room number","M435/M43501",0]
+    ],
+    diagCaption: "Includes ICD-10 code where the source document provides one",
+    diagnoses: [
+      ["Cellulitis of lower extremity (admitting dx)","L03.90"],
+      ["Acute on chronic diastolic (congestive) heart failure","I50.33"],
+      ["Atrial fibrillation (persistent)","I48.91"],
+      ["Type 2 diabetes mellitus","E11.9"],
+      ["Lymphedema, bilateral legs","I89.0"],
+      ["Hypertension","I10"],
+      ["CVA (cerebrovascular accident), history","I63.9"],
+      ["Morbid obesity, BMI 40-44.9","E66.01"]
+    ],
+    diagNote: "",
+    sources: [
+      ["PDF page 1", `Ford, Bevely Glass (MR # 1261481)
+ Responses to this message will be visible to other users coordinating the patient's care.
+Ford, Bevely Glass "BEV" MR#1261481 (81 y.o. F) (Adm: 03/13/26 1124) Inpatient
+Ford, Bevely Glass (MR # 1261481) Printed by Lopez, Katherine [XT304FQ] at 3/18/2026 9:07 AM
+Coordinated at ED to Hosp-Admission (Current) (Admit) on 3/13/2026 by Bates, Andrew Terrell
+PURE HEALTH TRANSITIONAL CARE AT TEXAS HEALTH PRES
+ACUTE REHAB/SNF/NH REFERRALS FAX PACKET
+CSN#: 9606042261 HAR#:20101930573   Acct #:
+Attending Provider: Shah, Amy Devi, DO   Admitting Provider: Hussein, Mohamed Ginawi, MD
+Admission Type: Emergency   Admission Status: Confirmed Admission
+Admission Date/Time: 03/13/26 1124   Hospital Service: Medical
+Hospital Area: THD   Unit: THD MED/SURG M4E   Room/Bed: M435/M43501   Auth/Cert Status: Incomplete
+Name: Ford, Bevely Glass "BEV"   Patient ID: 1261481   Gender Identity: Female   Birth Date: 01/03/45 (81 yrs)
+Address: 12400 PRESTON RD, Dallas TX 75230   Phone: 214-982-1441 (M) / 469-879-7024 (M)
+Emergency Contact 1: Jason Ford (Child), 332 Thomas, Murphy TX, 469-879-7024 (M)
+Emergency Contact 2: Jarrod Ford (Son), 619-323-8412 (M)`],
+      ["PDF page 2", `Ford, Bevely Glass (MR # 1261481)
+ALLERGIES
+Admitting Diagnosis: Cellulitis of lower extremity
+ATTENDING provider: HUSSEIN, MOHAMED GINAWI
+Name: Ford, Bevely Glass   Acct ID: 20101930573   Class: Inpatient   Status: Open
+Primary Coverage: MEDICARE - MEDICARE PART A AND B
+Guarantor Account (for Hospital Account #20101930573)
+F/O Payor/Plan: MEDICARE/MEDICARE PART A AND B
+Subscriber: Ford, Bevely Glass   Relation to Pt: Self   Subscriber #: 3HY6CF6FM86
+Address: PO BOX 3113, MECHANICSBURG, PA 17055-1828
+F/O Payor/Plan: AETNA/AETNA HEALTH AND LIFE INSURANCE COMPANY
+Subscriber: Ford, Bevely Glass   Relation to Pt: Self   Subscriber #: AHL3175729   Group Name: PLAN G
+Address: PO BOX 14770, LEXINGTON, KY 40512-4770   Phone: 800-264-4000
+Reaction Type / Reactions:
+Iv Dye [diatrizoate Sodium] - Dyspnea
+Ondansetron - Severe burning sensation all over body
+Bacitracin (Topical) - No reactions
+Allergies as of 3/18/2026, reviewed on 3/14/2026`],
+      ["PDF page 9", `Ford, Bevely Glass (MR # 1261481)
+Discussed management with ED Physician Dr. Crowley, and I agree to admit patient under inpatient status.
+Cellulitis of lower extremity
+Will admit to the medical floor for IV antibiotics and aggressive wound care. Given the patient multiple allergies started on IV meropenem in the ER, no side effects from that, will continue the same for now, consider ID consultation in a.m. for further antibiotic management. Dr. Moran was consulted by ED staff, will evaluate the patient, continue aggressive wound care. Keep legs elevated.
+Chronic acquired lymphedema
+Given the increased edema and increased abdominal girth, will check proBNP, will start the patient on IV Lasix 40 mg twice daily, resume her acetazolamide, daily weights, limits salt and fluid intake, strict I/O.
+Hypokalemia - Potassium of 3.2, replace and monitor especially being on IV Lasix.
+Atrial fibrillation (HCC) - Rate controlled, resumed metoprolol and Eliquis.
+Diastolic CHF (HCC) - Follow-up on proBNP, on IV Lasix and acetazolamide.
+Diabetes mellitus - Follow-up on A1c, started on sliding scale insulin with Accu-Cheks q. ACHS.
+Applicable CVC/Midline/PICC/Implanted Port Information: Peripheral IV Right antecubital (0 days)
+Anticipated length of stay: 2 midnights or more
+Active Problems: * Cellulitis of lower extremity - POA: Yes`],
+      ["PDF page 14", `Ford, Bevely Glass (MR # 1261481)
+WOUND CARE
+Wound 01/14/26 1400 Left lateral;proximal;lower leg (1) - 62 days
+Wound 01/14/26 1400 Left medial foot (2) - 62 days
+Wound 01/14/26 1400 Right buttocks (4) - 62 days
+Wound 01/14/26 1400 Right lateral heel (3) - 62 days
+Wound 03/16/26 0910 Right posterior leg pre-tib - 1 day
+Braden Scale: Sensory Perception 3 - slightly limited; Moisture 3 - occasionally moist; Activity 2 - chairfast; Mobility 2 - very limited; Nutrition 3 - adequate; Friction and Shear 1 - problem
+Braden Score: 14
+Wound 1: Date First Assessed 01/14/26, Present on Original Admission: Yes, Side: Left, Location: lateral/proximal/lower leg, Wound grade: Full Thickness, Status: New
+Wound 2: Left medial foot, Full Thickness, New
+Wound 3: Right lateral heel, Full Thickness, New
+Wound 4: Right buttocks, Full Thickness, New
+WOUND CARE FLOWSHEET DATA (most recent) - Wounds 03/17/26 2030`]
+    ]
+  },
+
+  craul: {
+    name: "Craul, Carol L", initials: "CC", ins: "Humana Medicare Advantage",
+    facility: "Medical City Dallas", age: 83, flagged: true, reviewNote: "Emergency contact name/relationship mismatch",
+    meds: [
+      ["Acetaminophen 650mg","PRN pain (Tylenol)","active","03/13/26"],
+      ["Hydralazine","PRN HTN, not on home BP meds","active","03/13/26"],
+      ["Packed RBC transfusion","2 units, microcytic anemia","active","03/13/26"],
+      ["Ophthalmic drops","Home meds, post-cataract surgery","active","03/12/26"]
+    ],
+    runLabel: "Admit run 03/14/2026 11:20 &middot; 72-page HCA/Meditech referral packet",
+    demographic: [
+      ["Last name","Craul",1],["First name","Carol L",1],["Gender at birth","Female",0],
+      ["Date of birth","12/24/1942 (83 yrs)",1],
+      ["Home address","5550 Harvest Hill Rd, Apt CE03, Dallas, TX 75230",0],
+      ["Alt phone","(410) 507-9375",0],["Marital status","Widowed",0],
+      ["Emergency contact","Mike Waldron, listed relation \"Sister\" &mdash; verify, 214-793-0430",0],
+      ["Referral source","Medical City Dallas (HCA Healthcare) &rarr; PureHealth Transitional Care",1]
+    ],
+    insurance: [
+      ["Primary insurance","Managed Care Medicare &mdash; Humana Medicare Advantage",1],
+      ["Plan / Group #","H76969702 / 3B008001",0],
+      ["Plan contact","(800) 457-4708",0],
+      ["Insured","Carol C Craul",0],
+      ["Guarantor","Carol L Craul (self)",0],
+      ["Authorization","Managed admission: Yes &mdash; referral status \"Waiting for your response\"",0]
+    ],
+    clinical: [
+      ["Admitting provider","Rebecca M Barr",1],
+      ["Attending provider","Mandy N Rieck, MD",1],
+      ["Consulting provider","Akshaj R Pole",0],
+      ["Referring / PCP","Self-referred / Darius Peikari",0],
+      ["Admission type","Inpatient (ED, fall)",0],
+      ["Hospital admission date","03/12/2026 10:22 PM",1],
+      ["Projected discharge date","03/14/2026 11:00 AM (referral date; actual pending SNF approval)",1],
+      ["Hospital service / room","COCDLH.8EW / H.826E-1",0],
+      ["Primary diagnosis / DRG","EMS: Fall, R hip pain, anemia &mdash; MS-DRG 536 Fractures of hip and pelvis w/o MCC",0]
+    ],
+    diagCaption: "Includes ICD-10 code where the source document provides one",
+    diagnoses: [
+      ["R nondisplaced periprosthetic fracture, right hip arthroplasty &mdash; nonop mgmt, TTWB 4-6wk",""],
+      ["Recent cataract surgery (history)",""],
+      ["Hypertension &mdash; not on outpatient medications",""],
+      ["Microcytic anemia &mdash; PRBC given, Hgb goal &gt;7, telemetry",""],
+      ["Mild hypokalemia &mdash; improving",""]
+    ],
+    diagNote: "No ICD-10 codes anywhere in this source document &mdash; narrative diagnoses only, flagged for coder review.",
+    sources: [
+      ["PDF page 2", `Name: CAROL L CRAUL   MRN: COCDL-H002111488
+Date of Birth: 12/24/1942 (83 years)   Sex at Birth: Female
+Address: 5550 HARVEST HILL RD, APT CE03, DALLAS, TX 75230
+Alt: (410) 507-9375   Marital Status: Widowed   Race: White   Religion: Christian: Roman Catholic
+Emergency Contact 1: MIKE WALDRON, 5550 Harvest Hill Rd, Apt CE03, Dallas TX 75230, Relationship: Sister, Home: (214) 793-0430
+Account #: COCDL-H00758101578   Patient Type: Inpatient
+Arrival Date/Time: 3/12/2026 10:22 PM (CT)   Projected Discharge Date: 3/14/2026 11:00 AM (CT)
+Location: COCDLH.8EW / H.826E-1   Facility: Medical City Dallas   Level of Care: H.P
+Primary Diagnosis: EMS:FALL,R HIP PAIN ANEMIA
+Initial DRG: MS-DRG (536) FRACTURES OF HIP AND PELVIS WITHOUT MCC
+Admitting Physician: Rebecca M Barr`],
+      ["PDF page 3", `Attending Physician: Mandy N Rieck   Consulting Physician: Akshaj R Pole
+Referring Physician: SELF B REFERRED   Primary Care Physician: Darius Peikari
+Is Managed Admission: Yes
+Financial Class: Managed Care Medicare
+Plan Number: H76969702   Group Number: 3B008001
+Plan Description: HUMANA MEDICARE ADVANTAGE
+Plan Provider Contact: (800) 457-4708
+Insured: CAROL C CRAUL   DOB: 12/24/1942`],
+      ["PDF page 53", `Full code
+Dispo to SNF once approved
+Electronically Signed by Rieck,Mandy N MD on 03/13/26 at 2039
+MEDICAL CITY DALLAS (COCDL)
+Orthopedic Consultation   REPORT#:0313-0254  REPORT STATUS: Signed
+DATE:03/13/26 TIME: 0905
+PATIENT: CRAUL,CAROL L   UNIT #: H002111488   ACCOUNT#: H00758101578   ROOM #: H.826E BED: 1
+DOB: 12/24/42  AGE: 83  SEX: F  ATTEND: Rieck,Mandy N MD
+ADM DT: 03/12/26   AUTHOR: Spearman,Tyler L MMS PA-C
+-- ASSESSMENT/PLAN --
+1: Periprosthetic fracture around internal prosthetic hip joint
+A/P: 83 yo female with nondisplaced fracture around right hip arthroplasty
+CT and case discussed and reviewed with on call orthopedic surgeon Dr. Stephenson...`],
+      ["PDF page 52", `83 y/o F who is being treated for a R hip fracture.
+1. R nondisplaced fracture around right hip arthroplasty
+- Per Ortho Dr. Stephenson, plan is for nonoperative management, no acute orthopedic surgical intervention is recommended at this time, per Ortho ok for patient to TTWB x 4-6 weeks with FWW and follow up in outpatient ortho clinic in 2 weeks for repeat xray evaluation
+- PT/OT consulted
+- CM consulted for SNF
+2. Recent cataract surgery - Resume OP drops, she takes three
+3. HTN - Hx of this but not on meds as an OP - Hydralazine PRN
+4. Microcytic anemia - Denies a hx of this, no s/s of bleeding, giving 2 units PRBC today and trending Hg q6hrs, keep Hg >7, Tele
+5. Mild hypoK - Has improved
+DVT prophylaxis SCD
+Full code
+Dispo to SNF once approved`]
+    ]
+  },
+
+  glasco: {
+    name: "Glasco, Karen Elizabeth", initials: "KG", ins: "Medicare Part A &amp; B",
+    facility: "PH Dallas", age: 82, flagged: true, reviewNote: "Acute diagnoses uncoded; CKD stage IV",
+    meds: [
+      ["Amlodipine 5mg","HTN maintenance","active","03/19/26"],
+      ["Carvedilol 6.25mg BID","HTN / cardiac","active","03/19/26"],
+      ["Pantoprazole 20mg IV BID","GI prophylaxis","active","03/19/26"],
+      ["Escitalopram 20mg","Depression","active","03/19/26"]
+    ],
+    runLabel: "Admit run 03/20/2026 08:07 &middot; 30-page Epic referral packet",
+    demographic: [
+      ["Last name","Glasco",1],["First name","Karen Elizabeth",1],["Gender identity","Female",0],
+      ["Date of birth","01/19/1944 (82 yrs)",1],
+      ["Home address","1316 Fernwood Dr, Mesquite, TX 75149",0],
+      ["Mobile phone","972-285-8540",0],["Marital status","Widowed",0],
+      ["Emergency contacts","Fred Homburg (Brother) 734-771-4177; Margaret Waggoner (Sister) 208-589-9310",0],
+      ["Referral source","PureHealth Transitional Care at Texas Health Pres",1]
+    ],
+    insurance: [
+      ["Primary insurance","Medicare Part A &amp; B",1],
+      ["Subscriber ID","3XG7UN0YU39",0],
+      ["Authorization","Incomplete &mdash; no auth number on file",0],
+      ["Other details","Hospital account #20101932689",0]
+    ],
+    clinical: [
+      ["Attending provider","Pandey, Sandeep, MD",1],
+      ["Admitting provider","Hassanein, Muhammad Hamdy, MD",1],
+      ["PCP","Nair, Krishnan, MD",0],
+      ["Admission type","Emergency (converted observation &rarr; inpatient 3/19)",0],
+      ["Hospital admission date","03/18/2026 12:11 (inpatient 03/19 12:21)",1],
+      ["Hospital service","Medical &mdash; THD Med/Surg M3W",0],
+      ["Hospital room number","M320/M32001",0]
+    ],
+    diagCaption: "Includes ICD-10 code where the source document provides one",
+    diagnoses: [
+      ["Traumatic closed anteromedial dislocation, right shoulder (fall, imaging-confirmed)",""],
+      ["CKD (chronic kidney disease), stage IV (HCC)",""],
+      ["Essential hypertension, benign","I10"],
+      ["Polycystic kidney disease","Q61.3"],
+      ["Psychiatric problem / depression","F99"],
+      ["Kidney disease, unspecified","N28.9"],
+      ["Peptic ulcer (history)","K27.9"],
+      ["Gallstones (s/p cholecystectomy 2017)","K80.20"],
+      ["Spastic colon / IBS","K58.9"],
+      ["Urinary incontinence in female","R32"]
+    ],
+    diagNote: "Admitting/acute diagnoses (shoulder dislocation, CKD stage IV) carry no code in this packet &mdash; only the coded chronic problem list does.",
+    sources: [
+      ["PDF page 1", `Glasco, Karen Elizabeth (MR # 343752)
+Glasco, Karen Elizabeth MR#343752 (82 y.o. F) (Adm: 03/18/26 1211) Inpatient
+Coordinated at ED to Hosp-Admission (Current) (Admit) on 3/18/2026 by Mistretta-Hamilton, Faithe
+PURE HEALTH TRANSITIONAL CARE AT TEXAS HEALTH PRES
+ACUTE REHAB/SNF/NH REFERRALS FAX PACKET
+CSN#: 9606412685 HAR#:20101932689
+Attending Provider: Pandey, Sandeep, MD   Admitting Provider: Hassanein, Muhammad Hamdy, MD
+Admission Type: Emergency   Admission Status: Confirmed Admission
+Admission Date/Time: 03/18/26 1211   Inpatient Admission Date/Time: 03/19/26 1221
+Hospital Service: Medical   Unit: THD MED/SURG M3W   Room/Bed: M320/M32001   Auth/Cert Status: Incomplete
+Name: Glasco, Karen Elizabeth   Patient ID: 343752   Gender Identity: Female   Birth Date: 01/19/44 (82 yrs)
+Address: 1316 FERNWOOD DR, MESQUITE TX 75149-1924   Phone: 972-285-8540 (M)
+PCP: Nair, Krishnan, MD, 214-345-5999
+Emergency Contact 1: Fred Homburg (Brother), 734-771-4177 (M)
+Emergency Contact 2: Margaret Waggoner (Sister), 208-589-9310 (M)`],
+      ["PDF page 4", `Glasco, Karen Elizabeth (MR # 343752)
+Author: Hassanein, Muhammad Hamdy, MD   Service: Hospitalist   Status: Signed
+PCP: Nair, Krishnan
+Chief Complaint: R shoulder injury
+History of present illness: Karen Elizabeth Glasco is a 82 y.o. female with history of HTN and CKD who presented to ED after a GLF. Was walking with walker and tripped landing on R shoulder and rolled onto her left side. Imaging revealed anteromedial dislocation of the right shoulder. This was reduced by ED physician. She is admitted for overnight observation. She feels better at this time. Repeat films of R shoulder pending.
+Other than the above, all other systems reviewed and negative
+Past History: Psychiatric problem (12/19/2023); Kidney disease (12/19/2023); Essential hypertension, benign; Gallstones; Incontinence in female; Peptic ulcer; Pneumonia; Polycystic kidney disease; Spastic colon
+Procedures: ERCP w/ sphincterotomy (03/10/2017); Laparoscopic cholecystectomy (03/11/2017); Bilateral IM nailing/rodding tibia (12/21/2023); Hysterectomy age 44; Bilateral oophorectomy age 44; Tonsillectomy
+Family History: Breast cancer post-meno (Mother, 70); Alzheimer's (Mother); Breast cancer pre-meno (Sister, 42)
+Smoking status: Former (Cigarettes)   Alcohol use: No   Drug use: No`],
+      ["PDF page 7", `Glasco, Karen Elizabeth (MR # 343752)
+Anterior shoulder dislocation of R shoulder secondary to fall
+Reduced in ED, repeat films pending
+May need ortho evaluation if not completely reduced or evidence of further injury
+Pain control for now
+Essential hypertension, benign - Continue home meds
+CKD (chronic kidney disease) - Stable
+DVT ppx-SCDs
+Code status: full
+I attest that this patient requires less than 2 midnights of hospital level care due to shoulder dislocation requiring observation. EDD tomorrow.
+IMPRESSION: Anteromedial dislocation of glenohumeral joint.
+FINDINGS: 3 views right shoulder shows anteromedial dislocation of humeral head in relation to glenoid. Hill-Sachs indentations seen on superior humeral head. 2 views right humerus shows no fracture. There is a radial head prosthesis present.
+-Electronically Signed By: James Pak, MD  3/18/2026 2:03 PM`],
+      ["PDF page 26", `Glasco, Karen Elizabeth (MR # 343752)
+Pneumonia [J18.9]
+Peptic ulcer [K27.9]
+Gallstones [K80.20]
+Spastic colon [K58.9]
+Incontinence in female [R32]
+SURGICAL PROCEDURE/COMMENT [SUR102] 03/10/2017 Procedure: ERCP; Surgeon: Arslanlar, Sami Naci, MD; Location: THD GI; Service: GI Lab
+Oophorectomy [SNO83152002] Bilateral, age 44
+Breast biopsy [SHX20] Right, 1985, Benign US guided core bx
+Tibia Nancy nail insertion [SHX2516] Right
+Family Medical History: Alzheimer's (Mother); Breast Cancer Post-Meno (Mother, 70); Breast Cancer Pre-Meno (Sister, 42); Heart (Father); Heart (Mother)
+Non Weight Bearing (ONCE) - Should strictly wear shoulder immobilizer at all times. Avoid shoulder ROM. Laterality: Right
+Physical Therapy Evaluate and Treat (ONCE) - Ordering Provider: Hassanein, Muhammad Hamdy, MD
+Occupational Therapy Evaluate and Treat (ONCE) - Ordering Provider: Hassanein, Muhammad Hamdy, MD`]
+    ]
+  }
+};
+
+let current = "ford";
+
+function renderList(){
+  const el = document.getElementById("patientList");
+  el.innerHTML = Object.keys(PATIENTS).map(key => {
+    const p = PATIENTS[key];
+    const rows = p.meds.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td class="status-${m[2]}">${m[2]==='active'?'Active':"DC'ed"}</td><td>${m[3]}</td></tr>`).join("");
+    return `<div class="patient-card ${key===current?'selected':''}" data-key="${key}" onclick="selectPatient('${key}')">
+      <div class="patient-head">
+        <div class="avatar${p.flagged?' flagged':''}">${p.initials}</div>
+        <div class="who">
+          <div class="name">${p.name}</div>
+          <div class="ins">${p.ins} &middot; ${p.facility} &middot; Age ${p.age}</div>
+          ${p.flagged?`<span class="review-pill">Needs review</span>`:''}
+        </div>
+      </div>
+      <table class="drug-table">
+        <tr><th>Drug administered</th><th>Observation</th><th>Status</th><th>Last date</th></tr>
+        ${rows}
+      </table>
+    </div>`;
+  }).join("");
+}
+
+function kvRows(rows){
+  return rows.map(r => `<div class="kv-row"><div class="k">${r[0]}</div><div class="v${r[2]?' linked':''}">${r[1]}</div></div>`).join("");
+}
+
+function renderDetail(key){
+  const p = PATIENTS[key];
+  document.getElementById("detailHeadline").textContent = p.name;
+  document.getElementById("detailSub").innerHTML = p.runLabel;
+  const diagRows = p.diagnoses.map(d => `<div class="diag-item"><span>${d[0]}</span><span class="code${d[1]?'':' none'}">${d[1] || 'no code'}</span></div>`).join("");
+  document.getElementById("detailBody").innerHTML = `
+    <div class="section">
+      <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">Demographics</span><span class="chev">&#9660;</span></div>
+      <div class="section-body">${kvRows(p.demographic)}</div>
+    </div>
+    <div class="section">
+      <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">Insurance &amp; payer</span><span class="chev">&#9660;</span></div>
+      <div class="section-body">${kvRows(p.insurance)}</div>
+    </div>
+    <div class="section">
+      <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">Clinical information</span><span class="chev">&#9660;</span></div>
+      <div class="section-body">${kvRows(p.clinical)}</div>
+    </div>
+    <div class="section">
+      <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">Diagnosis</span><span class="caption">${p.diagCaption}</span><span class="chev">&#9660;</span></div>
+      <div class="section-body">${diagRows}${p.diagNote ? `<div class="diag-note">${p.diagNote}</div>` : ""}${p.reviewNote ? `<div class="flag-note">Flagged for review: ${p.reviewNote}</div>` : ""}</div>
+    </div>
+  `;
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderSources(key){
+  const p = PATIENTS[key];
+  document.getElementById("pageCards").innerHTML = p.sources.map((s,i) => `
+    <div class="page-card" data-raw="${encodeURIComponent(s[1])}">
+      <div class="page-card-head"><span>${p.name}</span><span class="tag">${s[0]}</span></div>
+      <div class="page-card-body" id="body-${key}-${i}">${escapeHtml(s[1])}</div>
+      <div class="page-card-fade" id="fade-${key}-${i}"></div>
+      <button class="page-card-toggle" onclick="toggleExpand('${key}',${i})" id="toggle-${key}-${i}">Show full page</button>
+    </div>`).join("");
+  document.getElementById("kwSearch").value = "";
+  document.getElementById("noMatch").style.display = "none";
+}
+
+function toggleExpand(key,i){
+  const body = document.getElementById(`body-${key}-${i}`);
+  const fade = document.getElementById(`fade-${key}-${i}`);
+  const btn = document.getElementById(`toggle-${key}-${i}`);
+  const expanded = body.classList.toggle('expanded');
+  fade.classList.toggle('hide', expanded);
+  btn.textContent = expanded ? "Collapse page" : "Show full page";
+}
+
+function toggleSection(el){
+  el.classList.toggle('collapsed');
+  el.nextElementSibling.classList.toggle('collapsed');
+}
+
+function selectPatient(key){
+  current = key;
+  renderList();
+  renderDetail(key);
+  renderSources(key);
+}
+
+function filterPages(){
+  const q = document.getElementById('kwSearch').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.page-card');
+  let visible = 0;
+  cards.forEach(c => {
+    const raw = decodeURIComponent(c.dataset.raw).toLowerCase();
+    const match = !q || raw.includes(q);
+    c.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('noMatch').style.display = visible === 0 ? 'block' : 'none';
+}
+
+renderList();
+renderDetail(current);
+renderSources(current);
+</script>
+
+</body>
+</html>
