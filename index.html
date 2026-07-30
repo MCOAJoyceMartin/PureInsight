@@ -80,6 +80,14 @@
   .diag-note{font-size:11px;color:var(--gold);background:var(--gold-light);padding:8px 10px;border-radius:7px;margin-top:8px;}
   .flag-note{font-size:11px;color:var(--danger);background:var(--danger-light);padding:6px 9px;border-radius:6px;margin-top:4px;}
 
+  .iv-item{padding:8px 0;border-bottom:1px solid #f2f2ef;font-size:12.5px;}
+  .iv-item:last-child{border-bottom:none;}
+  .iv-item-top{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+  .iv-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:var(--brand-light);color:var(--brand);padding:2px 8px;border-radius:20px;white-space:nowrap;}
+  .iv-pages{margin-left:auto;font-size:10.5px;color:var(--text3);white-space:nowrap;}
+  .iv-desc{color:var(--text);line-height:1.5;}
+  .iv-empty{font-size:11.5px;color:var(--text3);font-style:italic;padding:6px 0;}
+
   /* SOURCE PANEL */
   .source-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
   .source-toolbar{display:flex;gap:8px;margin-bottom:12px;justify-content:flex-end;}
@@ -100,6 +108,29 @@
   .page-card-toggle:hover{background:var(--brand-light);}
   .no-match{display:none;text-align:center;color:var(--text3);padding:20px 0;}
 
+  .page{display:none;}
+  .page.active{display:block;}
+  .page-wrap{max-width:920px;margin:0 auto;padding:24px;}
+  .page-wrap h1{font-family:'DM Serif Display',serif;font-size:22px;color:var(--brand-dark);font-weight:400;margin:0 0 6px;}
+  .page-wrap .lede{color:var(--text2);font-size:13px;margin-bottom:24px;}
+
+  .dropzone{border:2px dashed var(--border);border-radius:14px;background:var(--surface);padding:40px 20px;text-align:center;cursor:pointer;transition:border-color .12s, background .12s;}
+  .dropzone:hover, .dropzone.drag{border-color:var(--brand);background:var(--brand-light);}
+  .dropzone .icon{font-size:30px;color:var(--brand);margin-bottom:10px;}
+  .dropzone .main{font-weight:600;font-size:14px;color:var(--text);}
+  .dropzone .sub{font-size:11.5px;color:var(--text3);margin-top:4px;}
+  .dropzone input{display:none;}
+
+  .queue-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin:28px 0 10px;}
+  .queue-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+  .queue-row .qname{font-weight:600;color:var(--text);font-size:13px;}
+  .queue-row .qmeta{font-size:11px;color:var(--text3);margin-top:1px;}
+  .queue-status{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .queue-status.done{background:var(--accent-light);color:var(--accent);}
+  .queue-status.new{background:var(--gold-light);color:var(--gold);}
+  .queue-btn{margin-left:auto;border:1px solid var(--border);background:var(--surface);color:var(--brand);border-radius:20px;padding:6px 14px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;}
+  .queue-btn:hover{background:var(--brand);color:#fff;border-color:var(--brand);}
+
   @media (max-width:1100px){ .layout{grid-template-columns:260px 1fr;} .source-panel{grid-column:1/3;} }
 </style>
 </head>
@@ -108,10 +139,10 @@
 <div class="topbar">
   <div class="brand"><span class="mark">PH</span> PureHealth AI</div>
   <div class="tabs">
-    <a>Home</a>
-    <a>Rapid Intake</a>
-    <a class="active">PureView</a>
-    <a>Activity Report</a>
+    <a data-tab="home" onclick="switchTab('home')">Home</a>
+    <a data-tab="intake" onclick="switchTab('intake')">Intake</a>
+    <a data-tab="pureview" class="active" onclick="switchTab('pureview')">PureView</a>
+    <a data-tab="activity" onclick="switchTab('activity')">Activity Report</a>
   </div>
   <div class="filters">
     <input placeholder="Patient name">
@@ -119,45 +150,160 @@
   </div>
 </div>
 
-<div class="layout">
+<div id="page-home" class="page">
+  <div class="page-wrap">
+    <h1>Welcome back</h1>
+    <p class="lede">PureHealth AI turns messy referral packets into structured, page-cited intake data your MDS and clinical teams can trust.</p>
 
-  <div>
-    <p class="col-title">Admit queue</p>
-    <div id="patientList"></div>
-  </div>
-
-  <div class="detail-panel">
-    <div class="detail-toolbar">
+    <div class="queue-row" onclick="switchTab('intake')" style="cursor:pointer;">
       <div>
-        <div class="headline" id="detailHeadline">&nbsp;</div>
-        <div class="sub" id="detailSub"></div>
+        <div class="qname">Start an intake</div>
+        <div class="qmeta">Upload a referral packet PDF for extraction</div>
       </div>
-      <div class="icon-row">
-        <span class="icon-btn" title="Edit">&#9998;</span>
-        <span class="icon-btn" title="Flag for review">&#9873;</span>
+      <button class="queue-btn" onclick="event.stopPropagation();switchTab('intake')">Go to Intake</button>
+    </div>
+    <div class="queue-row" onclick="switchTab('pureview')" style="cursor:pointer;">
+      <div>
+        <div class="qname">Review in PureView</div>
+        <div class="qmeta">3 packets processed &middot; Ford, Craul, and Glasco ready for MDS/clinical review</div>
+      </div>
+      <button class="queue-btn" onclick="event.stopPropagation();switchTab('pureview')">Go to PureView</button>
+    </div>
+
+    <p class="queue-title">Recent activity</p>
+    <div class="queue-row">
+      <div>
+        <div class="qname">Glasco, Karen Elizabeth</div>
+        <div class="qmeta">30-page packet processed &middot; flagged: acute diagnoses uncoded</div>
+      </div>
+      <span class="queue-status done">Processed</span>
+    </div>
+    <div class="queue-row">
+      <div>
+        <div class="qname">Craul, Carol L</div>
+        <div class="qmeta">72-page packet processed &middot; flagged: emergency contact mismatch</div>
+      </div>
+      <span class="queue-status done">Processed</span>
+    </div>
+    <div class="queue-row">
+      <div>
+        <div class="qname">Ford, Bevely Glass</div>
+        <div class="qmeta">25-page packet processed &middot; flagged: antibiotic allergy + active wounds</div>
+      </div>
+      <span class="queue-status done">Processed</span>
+    </div>
+  </div>
+</div>
+
+<div id="page-intake" class="page">
+  <div class="page-wrap">
+    <h1>Intake</h1>
+    <p class="lede">Upload a referral packet, fax bundle, or chart export. PureHealth AI will extract structured fields and page-linked source citations for review in PureView.</p>
+
+    <label class="dropzone" for="fileUpload">
+      <div class="icon">&#8679;</div>
+      <div class="main">Drop a PDF here, or click to browse</div>
+      <div class="sub">Accepts scanned or electronic PDFs &middot; up to 300 pages</div>
+      <input type="file" id="fileUpload" accept="application/pdf">
+    </label>
+
+    <p class="queue-title">Recent uploads</p>
+    <div class="queue-row">
+      <div>
+        <div class="qname">THR &ndash; Ford, Bevely Glass (BEV) updates.pdf</div>
+        <div class="qmeta">25 pages &middot; processed 03/18/2026 09:05</div>
+      </div>
+      <span class="queue-status done">Ready</span>
+      <button class="queue-btn" onclick="selectPatient('ford');switchTab('pureview')">Review in PureView</button>
+    </div>
+    <div class="queue-row">
+      <div>
+        <div class="qname">MCDallas &ndash; Humana Craul, Carol Referral.pdf</div>
+        <div class="qmeta">72 pages &middot; processed 03/14/2026 11:20</div>
+      </div>
+      <span class="queue-status done">Ready</span>
+      <button class="queue-btn" onclick="selectPatient('craul');switchTab('pureview')">Review in PureView</button>
+    </div>
+    <div class="queue-row">
+      <div>
+        <div class="qname">THR &ndash; MCR &ndash; Glasco, Karen Elizabeth Referral.pdf</div>
+        <div class="qmeta">30 pages &middot; processed 03/20/2026 08:07</div>
+      </div>
+      <span class="queue-status done">Ready</span>
+      <button class="queue-btn" onclick="selectPatient('glasco');switchTab('pureview')">Review in PureView</button>
+    </div>
+  </div>
+</div>
+
+<div id="page-pureview" class="page active">
+  <div class="layout">
+
+    <div>
+      <p class="col-title">Admit queue</p>
+      <div id="patientList"></div>
+    </div>
+
+    <div class="detail-panel">
+      <div class="detail-toolbar">
+        <div>
+          <div class="headline" id="detailHeadline">&nbsp;</div>
+          <div class="sub" id="detailSub"></div>
+        </div>
+        <div class="icon-row">
+          <span class="icon-btn" title="Edit">&#9998;</span>
+          <span class="icon-btn" title="Flag for review">&#9873;</span>
+          <span class="icon-btn" title="Print">&#128424;</span>
+          <span class="icon-btn" title="Approve">&#10003;</span>
+          <span class="icon-btn" title="Export">&#8681;</span>
+        </div>
+      </div>
+      <div class="detail-body" id="detailBody"></div>
+    </div>
+
+    <div class="source-panel">
+      <p class="col-title">Source pages</p>
+      <div class="source-toolbar">
+        <span class="icon-btn" title="Flag">&#9873;</span>
         <span class="icon-btn" title="Print">&#128424;</span>
-        <span class="icon-btn" title="Approve">&#10003;</span>
-        <span class="icon-btn" title="Export">&#8681;</span>
+        <span class="icon-btn" title="Copy link">&#128279;</span>
       </div>
+      <div class="search-wrap">
+        <input id="kwSearch" placeholder="Search extracted pages" oninput="filterPages()">
+        <button onclick="filterPages()">&#128269;</button>
+      </div>
+      <div id="pageCards"></div>
+      <div class="no-match" id="noMatch">No matching pages</div>
     </div>
-    <div class="detail-body" id="detailBody"></div>
-  </div>
 
-  <div class="source-panel">
-    <p class="col-title">Source pages</p>
-    <div class="source-toolbar">
-      <span class="icon-btn" title="Flag">&#9873;</span>
-      <span class="icon-btn" title="Print">&#128424;</span>
-      <span class="icon-btn" title="Copy link">&#128279;</span>
-    </div>
-    <div class="search-wrap">
-      <input id="kwSearch" placeholder="Search extracted pages" oninput="filterPages()">
-      <button onclick="filterPages()">&#128269;</button>
-    </div>
-    <div id="pageCards"></div>
-    <div class="no-match" id="noMatch">No matching pages</div>
   </div>
+</div>
 
+<div id="page-activity" class="page">
+  <div class="page-wrap">
+    <h1>Activity report</h1>
+    <p class="lede">A log of intake runs and reviewer actions across all patients.</p>
+    <div class="queue-row">
+      <div>
+        <div class="qname">Glasco, Karen Elizabeth &mdash; Admit run 03/20/2026 08:07</div>
+        <div class="qmeta">30-page packet extracted &middot; awaiting MDS/clinical review</div>
+      </div>
+      <span class="queue-status new">Needs review</span>
+    </div>
+    <div class="queue-row">
+      <div>
+        <div class="qname">Craul, Carol L &mdash; Admit run 03/14/2026 11:20</div>
+        <div class="qmeta">72-page packet extracted &middot; awaiting MDS/clinical review</div>
+      </div>
+      <span class="queue-status new">Needs review</span>
+    </div>
+    <div class="queue-row">
+      <div>
+        <div class="qname">Ford, Bevely Glass &mdash; Admit run 03/18/2026 09:05</div>
+        <div class="qmeta">25-page packet extracted &middot; awaiting MDS/clinical review</div>
+      </div>
+      <span class="queue-status new">Needs review</span>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -210,6 +356,13 @@ const PATIENTS = {
       ["Morbid obesity, BMI 40-44.9","E66.01"]
     ],
     diagNote: "",
+    ivDocs: [
+      ["Access / line", "Peripheral IV placed right antecubital on admission (day 0); still sited 5 days later; documented through discharge (3&ndash;4 days total).", "PDF p. 9, 12, 25"],
+      ["Allergy", "IV Dye [diatrizoate sodium] &mdash; reaction: dyspnea.", "PDF p. 2, 5"],
+      ["IV antibiotics", "Started on IV meropenem in the ED for cellulitis; continued as inpatient antibiotic therapy pending ID consult.", "PDF p. 9, 12, 13"],
+      ["IV diuretic", "IV Lasix (furosemide) 40 mg twice daily for CHF/lymphedema; noted as a barrier to discharge ('iv lasix').", "PDF p. 9, 11, 12"],
+      ["MAR &mdash; IV / line orders", "Furosemide slow IV push q12h; saline lock NS flushes for line maintenance; dextrose IV push, diphenhydramine, potassium/phosphate/magnesium replacement, and metoclopramide all ordered IV or IV push PRN.", "PDF p. 11, 21&ndash;24"]
+    ],
     sources: [
       ["PDF page 1", `Ford, Bevely Glass (MR # 1261481)
  Responses to this message will be visible to other users coordinating the patient's care.
@@ -321,6 +474,12 @@ WOUND CARE FLOWSHEET DATA (most recent) - Wounds 03/17/26 2030`]
       ["Mild hypokalemia &mdash; improving",""]
     ],
     diagNote: "No ICD-10 codes anywhere in this source document &mdash; narrative diagnoses only, flagged for coder review.",
+    ivDocs: [
+      ["Imaging contrast", "CT abdomen/pelvis and CT right leg performed with IV contrast (100 mL Isovue-370).", "PDF p. 15, 18, 21, 25"],
+      ["MAR &mdash; IV orders", "Hydralazine, morphine sulfate, naloxone, and ondansetron ordered IV / IV PRN; sodium chloride 0.9% 1000 mL IV running as a bridge order.", "PDF p. 38&ndash;39, 56&ndash;57"],
+      ["I&amp;O tracking", "IV fluid intake logged separately on the intake/output flowsheet.", "PDF p. 50"]
+    ],
+    ivNote: "No CVC/midline/PICC or peripheral-IV site documentation found anywhere in this packet &mdash; access-site charting appears to be missing, flagged for review.",
     sources: [
       ["PDF page 2", `Name: CAROL L CRAUL   MRN: COCDL-H002111488
 Date of Birth: 12/24/1942 (83 years)   Sex at Birth: Female
@@ -416,6 +575,12 @@ Dispo to SNF once approved`]
       ["Urinary incontinence in female","R32"]
     ],
     diagNote: "Admitting/acute diagnoses (shoulder dislocation, CKD stage IV) carry no code in this packet &mdash; only the coded chronic problem list does.",
+    ivDocs: [
+      ["Access / line", "Peripheral IV left antecubital and left basilic vein (multiple placements, 0&ndash;1 day at each note); Vascular Access Team consulted for a difficult peripheral IV.", "PDF p. 13, 27, 30"],
+      ["IV medication", "IV PPI (pantoprazole) started for GI prophylaxis; IV fluids given for poor oral intake.", "PDF p. 13, 14"],
+      ["MAR &mdash; IV / line orders", "Diphenhydramine, metoclopramide, furosemide, hydromorphone, ondansetron, and potassium/phosphate/magnesium replacement all ordered IV or IV push PRN.", "PDF p. 27&ndash;29"],
+      ["Lines, tubes, drains", "Nursing flowsheet documents IV with saline lock (LK).", "PDF p. 18"]
+    ],
     sources: [
       ["PDF page 1", `Glasco, Karen Elizabeth (MR # 343752)
 Glasco, Karen Elizabeth MR#343752 (82 y.o. F) (Adm: 03/18/26 1211) Inpatient
@@ -506,6 +671,9 @@ function renderDetail(key){
   document.getElementById("detailHeadline").textContent = p.name;
   document.getElementById("detailSub").innerHTML = p.runLabel;
   const diagRows = p.diagnoses.map(d => `<div class="diag-item"><span>${d[0]}</span><span class="code${d[1]?'':' none'}">${d[1] || 'no code'}</span></div>`).join("");
+  const ivRows = (p.ivDocs && p.ivDocs.length)
+    ? p.ivDocs.map(iv => `<div class="iv-item"><div class="iv-item-top"><span class="iv-tag">${iv[0]}</span><span class="iv-pages">${iv[2]}</span></div><div class="iv-desc">${iv[1]}</div></div>`).join("")
+    : `<div class="iv-empty">No IV-related documentation found in this packet.</div>`;
   document.getElementById("detailBody").innerHTML = `
     <div class="section">
       <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">Demographics</span><span class="chev">&#9660;</span></div>
@@ -522,6 +690,10 @@ function renderDetail(key){
     <div class="section">
       <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">Diagnosis</span><span class="caption">${p.diagCaption}</span><span class="chev">&#9660;</span></div>
       <div class="section-body">${diagRows}${p.diagNote ? `<div class="diag-note">${p.diagNote}</div>` : ""}${p.reviewNote ? `<div class="flag-note">Flagged for review: ${p.reviewNote}</div>` : ""}</div>
+    </div>
+    <div class="section">
+      <div class="section-head" onclick="toggleSection(this)"><span class="bar"></span><span class="label">IV documentation</span><span class="caption">Every mention of IV access, therapy, or orders found in the packet</span><span class="chev">&#9660;</span></div>
+      <div class="section-body">${ivRows}${p.ivNote ? `<div class="flag-note">${p.ivNote}</div>` : ""}</div>
     </div>
   `;
 }
@@ -575,6 +747,12 @@ function filterPages(){
     if (match) visible++;
   });
   document.getElementById('noMatch').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.dataset.tab === name));
 }
 
 renderList();
